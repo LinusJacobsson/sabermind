@@ -8,3 +8,20 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Tool caches and coverage output
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Local secrets (commit only safe examples)
+.env
+.env.*
+!.env.example
+
+# Operating system files
+.DS_Store
