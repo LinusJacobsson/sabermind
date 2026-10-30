@@ -1,0 +1,22 @@
+name: Development task
+description: Define a focused task with reviewable acceptance criteria.
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Outcome
+      description: What should work when this task is complete?
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      placeholder: "- [ ] Observable completion criterion"
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies and validation
+      description: Link prerequisites and describe how the result will be checked.
