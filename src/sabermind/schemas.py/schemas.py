@@ -89,3 +89,39 @@ class ModelPrediction(BaseModel):
         ...,
         description="Predicted probability of the outcome occurring (between 0 and 1).",
     )
+
+
+class TeamMapping(BaseModel):
+    team_id: int = Field(
+        ..., description="System generated unique identifier for the team."
+    )
+    external_team_id: str = Field(
+        ..., description="External identifier for the team from a third-party source."
+    )
+    source: str = Field(
+        ..., description="Name of the external source providing the team ID."
+    )
+
+
+class PlayerMapping(BaseModel):
+    player_id: int = Field(
+        ..., description="System generated unique identifier for the player."
+    )
+    external_player_id: str = Field(
+        ..., description="External identifier for the player from a third-party source."
+    )
+    source: str = Field(
+        ..., description="Name of the external source providing the player ID."
+    )
+
+
+class EventMapping(BaseModel):
+    event_id: int = Field(
+        ..., description="System generated unique identifier for the event."
+    )
+    external_event_id: str = Field(
+        ..., description="External identifier for the event from a third-party source."
+    )
+    source: str = Field(
+        ..., description="Name of the external source providing the event ID."
+    )
