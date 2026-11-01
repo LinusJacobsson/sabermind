@@ -793,6 +793,15 @@ wheels = [
 ]
 
 [[package]]
+name = "py-xid"
+version = "1.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/1b/3c/17dfdf554ba119b313f1da475f46be2f4e85a1aa137e36e019fd831d2a4a/py-xid-1.0.0.tar.gz", hash = "sha256:82e5bbdab92d104fcc2bcb95a169ecaf126e72f838f0da6900efd9a1323ed05f", size = 5181, upload-time = "2023-10-05T23:32:06.381Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/21/8e/113870495d82c4f190bf9b994b4895beee7abe507a68ceef0b3420004fef/py_xid-1.0.0-py3-none-any.whl", hash = "sha256:759375239460ff9bebbf277fb469b2147236049268295a3708280818b806476b", size = 4531, upload-time = "2023-10-05T23:32:05.076Z" },
+]
+
+[[package]]
 name = "pydantic"
 version = "2.14.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1048,6 +1057,7 @@ name = "sabermind"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "py-xid" },
     { name = "pydantic" },
 ]
 
@@ -1062,7 +1072,10 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "pydantic", specifier = ">=2.14.2" }]
+requires-dist = [
+    { name = "py-xid", specifier = ">=1.0.0" },
+    { name = "pydantic", specifier = ">=2.14.2" },
+]
 
 [package.metadata.requires-dev]
 dev = [
