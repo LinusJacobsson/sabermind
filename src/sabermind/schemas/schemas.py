@@ -2,7 +2,8 @@ from datetime import datetime
 from enum import StrEnum
 
 from pydantic import BaseModel, Field
-from schemas.xid import EventId, OddsId, PlayerId, PredictionId, TeamId
+
+from sabermind.schemas.xid import EventId, OddsId, PlayerId, PredictionId, TeamId
 
 
 # TODO: Add more sports as needed
