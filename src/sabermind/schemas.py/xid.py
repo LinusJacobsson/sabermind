@@ -2,7 +2,7 @@ import re
 from dataclasses import dataclass
 from typing import NewType, Self
 
-from xid import XID
+from xid.xid import XID  # type: ignore[import-untyped]
 
 _XID_PATTERN = re.compile(r"[0-9a-v]{19}[0g]")
 
