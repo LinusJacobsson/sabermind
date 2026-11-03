@@ -3,6 +3,8 @@ from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
+from sabermind.schemas.xid import EventId, OddsId, PlayerId, PredictionId, TeamId
+
 
 # TODO: Add more sports as needed
 class Sport(StrEnum):
@@ -10,7 +12,7 @@ class Sport(StrEnum):
 
 
 class Team(BaseModel):
-    team_id: int = Field(
+    team_id: TeamId = Field(
         ..., description="System generated unique identifier for the team."
     )
     name: str = Field(..., description="Name of the team.")
@@ -21,7 +23,7 @@ class Team(BaseModel):
 
 
 class Event(BaseModel):
-    event_id: int = Field(
+    event_id: EventId = Field(
         ..., description="System generated unique identifier for the event."
     )
     name: str = Field(
@@ -37,7 +39,7 @@ class Event(BaseModel):
 
 
 class Player(BaseModel):
-    player_id: int = Field(
+    player_id: PlayerId = Field(
         ..., description="System generated unique identifier for the player."
     )
     name: str = Field(..., description="Name of the player.")
@@ -51,10 +53,10 @@ class Player(BaseModel):
 
 
 class Odds(BaseModel):
-    odds_id: int = Field(
+    odds_id: OddsId = Field(
         ..., description="System generated unique identifier for the odds."
     )
-    event_id: int = Field(
+    event_id: EventId = Field(
         ..., description="Identifier for the event associated with these odds."
     )
     bookmaker: str = Field(..., description="Name of the bookmaker providing the odds.")
@@ -71,10 +73,10 @@ class Odds(BaseModel):
 
 
 class ModelPrediction(BaseModel):
-    prediction_id: int = Field(
+    prediction_id: PredictionId = Field(
         ..., description="System generated unique identifier for the prediction."
     )
-    event_id: int = Field(
+    event_id: EventId = Field(
         ..., description="Identifier for the event associated with this prediction."
     )
     model_name: str = Field(..., description="Name of the predictive model.")
@@ -92,7 +94,7 @@ class ModelPrediction(BaseModel):
 
 
 class TeamMapping(BaseModel):
-    team_id: int = Field(
+    team_id: TeamId = Field(
         ..., description="System generated unique identifier for the team."
     )
     external_team_id: str = Field(
@@ -104,7 +106,7 @@ class TeamMapping(BaseModel):
 
 
 class PlayerMapping(BaseModel):
-    player_id: int = Field(
+    player_id: PlayerId = Field(
         ..., description="System generated unique identifier for the player."
     )
     external_player_id: str = Field(
@@ -116,7 +118,7 @@ class PlayerMapping(BaseModel):
 
 
 class EventMapping(BaseModel):
-    event_id: int = Field(
+    event_id: EventId = Field(
         ..., description="System generated unique identifier for the event."
     )
     external_event_id: str = Field(
