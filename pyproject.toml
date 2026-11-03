@@ -7,7 +7,10 @@ authors = [
     { name = "LinusJacobsson", email = "jacobssonlinus00@gmail.com" }
 ]
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "py-xid>=1.0.0",
+    "pydantic>=2.14.2",
+]
 
 [project.scripts]
 sabermind = "sabermind:main"
