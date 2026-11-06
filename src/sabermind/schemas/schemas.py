@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from enum import StrEnum
 
 from pydantic import BaseModel, Field
@@ -43,7 +43,7 @@ class Player(BaseModel):
         ..., description="System generated unique identifier for the player."
     )
     name: str = Field(..., description="Name of the player.")
-    date_of_birth: datetime = Field(
+    date_of_birth: date = Field(
         ..., description="Date of birth of the player in YYYY-MM-DD format."
     )
     position: str = Field(..., description="Position played by the player.")

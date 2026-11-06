@@ -1,5 +1,6 @@
 from sabermind.database.database import Database
 from sabermind.schemas.schemas import Player
+from sabermind.schemas.xid import PlayerId, Xid
 
 
 class PlayerRepository:
@@ -12,13 +13,13 @@ class PlayerRepository:
         VALUES (%s, %s, %s, %s, %s)
         """
         params = (
-            player.player_id,
+            str(player.player_id),
             player.name,
             player.date_of_birth,
             player.position,
             player.sport,
         )
-        self.db.execute_query(query, params)
+        self.db.execute_command(query, params)
 
     def get_player(self, player_id: str) -> Player | None:
         query = "SELECT player_id, name, date_of_birth, position, sport FROM players WHERE player_id = %s"
@@ -26,7 +27,7 @@ class PlayerRepository:
         result = self.db.execute_query(query, params)
         if result:
             return Player(
-                player_id=result[0][0],
+                player_id=PlayerId(Xid.parse(result[0][0])),
                 name=result[0][1],
                 date_of_birth=result[0][2],
                 position=result[0][3],
@@ -37,7 +38,7 @@ class PlayerRepository:
     def update_player(self, player: Player) -> None:
         query = """
         UPDATE players
-        SET name = %s, date_of_birth = %s, position = %s, sport = %s
+        SET name = %s, date_of_birth = %s, position = %s, sport = %s, updated_at = now()
         WHERE player_id = %s
         """
         params = (
@@ -45,11 +46,11 @@ class PlayerRepository:
             player.date_of_birth,
             player.position,
             player.sport,
-            player.player_id,
+            str(player.player_id),
         )
-        self.db.execute_query(query, params)
+        self.db.execute_command(query, params)
 
     def delete_player(self, player_id: str) -> None:
         query = "DELETE FROM players WHERE player_id = %s"
         params = (player_id,)
-        self.db.execute_query(query, params)
+        self.db.execute_command(query, params)

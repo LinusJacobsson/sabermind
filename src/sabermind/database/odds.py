@@ -1,5 +1,6 @@
 from sabermind.database.database import Database
 from sabermind.schemas.schemas import Odds
+from sabermind.schemas.xid import EventId, OddsId, Xid
 
 
 class OddsRepository:
@@ -8,27 +9,27 @@ class OddsRepository:
 
     def create_odds(self, odds: Odds) -> None:
         query = """
-        INSERT INTO odds (odds_id, event_id, bookmaker, market, outcome, odds_value)
+        INSERT INTO odds (odds_id, event_id, bookmaker, market_type, outcome, odds_value)
         VALUES (%s, %s, %s, %s, %s, %s)
         """
         params = (
-            odds.odds_id,
-            odds.event_id,
+            str(odds.odds_id),
+            str(odds.event_id),
             odds.bookmaker,
             odds.market,
             odds.outcome,
             odds.odds_value,
         )
-        self.db.execute_query(query, params)
+        self.db.execute_command(query, params)
 
     def get_odds(self, odds_id: str) -> Odds | None:
-        query = "SELECT odds_id, event_id, bookmaker, market, selection, odds_value FROM odds WHERE odds_id = %s"
+        query = "SELECT odds_id, event_id, bookmaker, market_type, outcome, odds_value FROM odds WHERE odds_id = %s"
         params = (odds_id,)
         result = self.db.execute_query(query, params)
         if result:
             return Odds(
-                odds_id=result[0][0],
-                event_id=result[0][1],
+                odds_id=OddsId(Xid.parse(result[0][0])),
+                event_id=EventId(Xid.parse(result[0][1])),
                 bookmaker=result[0][2],
                 market=result[0][3],
                 outcome=result[0][4],

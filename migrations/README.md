@@ -12,6 +12,11 @@ These commands use `yoyo.ini` and `MIGRATION_DATABASE_URL` from the environment
 file. Review the pending migration list before applying it. The database must
 already exist. Do not run migration SQL outside a transaction.
 
+`0008_add_player_sport` adds the `sport` column expected by `PlayerRepository`.
+Existing players receive `baseball`, the only currently supported sport. Apply
+this migration before using the updated player repository. The Python
+`Player.date_of_birth` field now uses `date` to match the PostgreSQL `date` column.
+
 `0007` creates `player_mappings`, `team_mappings`, and `event_mappings`, copies any
 existing rows including timestamps, then drops `mappings`. An empty old table
 needs no special handling. Existing rows must use the exact object types `player`,
