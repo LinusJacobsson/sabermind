@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from enum import StrEnum
 
 from pydantic import BaseModel, Field
@@ -43,7 +43,7 @@ class Player(BaseModel):
         ..., description="System generated unique identifier for the player."
     )
     name: str = Field(..., description="Name of the player.")
-    date_of_birth: datetime = Field(
+    date_of_birth: date = Field(
         ..., description="Date of birth of the player in YYYY-MM-DD format."
     )
     position: str = Field(..., description="Position played by the player.")
@@ -97,11 +97,11 @@ class TeamMapping(BaseModel):
     team_id: TeamId = Field(
         ..., description="System generated unique identifier for the team."
     )
-    external_team_id: str = Field(
-        ..., description="External identifier for the team from a third-party source."
+    external_id: str = Field(
+        ..., min_length=1, description="External identifier for the team."
     )
     source: str = Field(
-        ..., description="Name of the external source providing the team ID."
+        ..., min_length=1, description="ID namespace providing the team ID."
     )
 
 
@@ -109,11 +109,11 @@ class PlayerMapping(BaseModel):
     player_id: PlayerId = Field(
         ..., description="System generated unique identifier for the player."
     )
-    external_player_id: str = Field(
-        ..., description="External identifier for the player from a third-party source."
+    external_id: str = Field(
+        ..., min_length=1, description="External identifier for the player."
     )
     source: str = Field(
-        ..., description="Name of the external source providing the player ID."
+        ..., min_length=1, description="ID namespace providing the player ID."
     )
 
 
@@ -121,9 +121,12 @@ class EventMapping(BaseModel):
     event_id: EventId = Field(
         ..., description="System generated unique identifier for the event."
     )
-    external_event_id: str = Field(
-        ..., description="External identifier for the event from a third-party source."
+    external_id: str = Field(
+        ..., min_length=1, description="External identifier for the event."
     )
     source: str = Field(
-        ..., description="Name of the external source providing the event ID."
+        ..., min_length=1, description="ID namespace providing the event ID."
     )
+
+
+Mapping = TeamMapping | PlayerMapping | EventMapping
