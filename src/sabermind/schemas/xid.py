@@ -32,3 +32,5 @@ PlayerId = NewType("PlayerId", Xid)
 EventId = NewType("EventId", Xid)
 OddsId = NewType("OddsId", Xid)
 PredictionId = NewType("PredictionId", Xid)
+
+ObjectId = TeamId | PlayerId | EventId | OddsId | PredictionId
