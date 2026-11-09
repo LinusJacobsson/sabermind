@@ -13,7 +13,7 @@ from sabermind.database.database import Database
 from sabermind.database.exceptions import MappingConflictError
 from sabermind.database.mappings import MappingRepository
 from sabermind.schemas.schemas import EventMapping, Mapping, PlayerMapping, TeamMapping
-from sabermind.schemas.xid import EventId, PlayerId, TeamId, Xid
+from sabermind.schemas.xid import EventId, PlayerId, TeamId
 
 pytestmark = pytest.mark.integration
 MIGRATIONS = Path(__file__).resolve().parents[2] / "migrations"
@@ -21,10 +21,17 @@ PLAYER = PlayerId.new()
 OTHER_PLAYER = PlayerId.new()
 TEAM = TeamId.new()
 EVENT = EventId.new()
+# Historical migration fixtures deliberately use the pre-prefix ID format.
+LEGACY_PLAYER = "00000000000000000000"
+LEGACY_OTHER_PLAYER = "10000000000000000000"
+LEGACY_TEAM = "20000000000000000000"
+LEGACY_EVENT = "30000000000000000000"
+LEGACY_MISSING_PLAYER = "40000000000000000000"
 
 
 @pytest.fixture
-def db() -> Iterator[Database]:
+def schema_db() -> Iterator[Database]:
+    """Each test gets an empty schema, independent of its migration version."""
     url = os.getenv("SABERMIND_TEST_DATABASE_URL")
     if not url:
         pytest.skip("Set SABERMIND_TEST_DATABASE_URL to run PostgreSQL tests")
@@ -35,31 +42,55 @@ def db() -> Iterator[Database]:
         database = Database()
         database.conn = conn
         try:
-            for path in sorted(MIGRATIONS.glob("000[1-6]_*.sql")):
-                conn.execute(path.read_text())
-            conn.execute(
-                """
-                INSERT INTO players (player_id, name, date_of_birth, position)
-                VALUES (%s, 'A', '2000-01-01', 'P'),
-                       (%s, 'B', '2000-01-01', 'P')
-                """,
-                (str(PLAYER), str(OTHER_PLAYER)),
-            )
-            conn.execute(
-                "INSERT INTO teams (team_id, name, league, sport) "
-                "VALUES (%s, 'Team', 'MLB', 'baseball')",
-                (str(TEAM),),
-            )
-            conn.execute(
-                "INSERT INTO events (event_id, name, sport, start_time, location) "
-                "VALUES (%s, 'Game', 'baseball', now(), 'Park')",
-                (str(EVENT),),
-            )
             yield database
         finally:
             conn.execute(
                 sql.SQL("DROP SCHEMA {} CASCADE").format(sql.Identifier(schema))
             )
+
+
+def seed_entities(
+    db: Database, player: str, other_player: str, team: str, event: str
+) -> None:
+    db.execute_command(
+        "INSERT INTO players (player_id, name, date_of_birth, position) "
+        "VALUES (%s, 'A', '2000-01-01', 'P'), (%s, 'B', '2000-01-01', 'P')",
+        (player, other_player),
+    )
+    db.execute_command(
+        "INSERT INTO teams (team_id, name, league, sport) "
+        "VALUES (%s, 'Team', 'MLB', 'baseball')",
+        (team,),
+    )
+    db.execute_command(
+        "INSERT INTO events (event_id, name, sport, start_time, location) "
+        "VALUES (%s, 'Game', 'baseball', now(), 'Park')",
+        (event,),
+    )
+
+
+@pytest.fixture
+def legacy_db(schema_db: Database) -> Database:
+    """Schema immediately before 0007, with bare historical IDs."""
+    assert schema_db.conn is not None
+    with schema_db.transaction():
+        for path in sorted(MIGRATIONS.glob("000[1-6]_*.sql")):
+            schema_db.conn.execute(path.read_text())
+        seed_entities(
+            schema_db, LEGACY_PLAYER, LEGACY_OTHER_PLAYER, LEGACY_TEAM, LEGACY_EVENT
+        )
+    return schema_db
+
+
+@pytest.fixture
+def db(schema_db: Database) -> Database:
+    """Current schema and prefixed IDs for repository behavior tests."""
+    assert schema_db.conn is not None
+    with schema_db.transaction():
+        for path in sorted(MIGRATIONS.glob("[0-9]*.sql")):
+            schema_db.conn.execute(path.read_text())
+        seed_entities(schema_db, str(PLAYER), str(OTHER_PLAYER), str(TEAM), str(EVENT))
+    return schema_db
 
 
 def migrate(db: Database) -> None:
@@ -68,9 +99,14 @@ def migrate(db: Database) -> None:
         db.conn.execute((MIGRATIONS / "0007_split_mappings.sql").read_text())
 
 
-def test_migration_preserves_rows_and_timestamps(db: Database) -> None:
+def test_migration_preserves_rows_and_timestamps(legacy_db: Database) -> None:
+    db = legacy_db
     timestamp = datetime(2020, 1, 1, tzinfo=UTC)
-    for kind, target in (("player", PLAYER), ("team", TEAM), ("event", EVENT)):
+    for kind, target in (
+        ("player", LEGACY_PLAYER),
+        ("team", LEGACY_TEAM),
+        ("event", LEGACY_EVENT),
+    ):
         db.execute_command(
             "INSERT INTO mappings "
             "(object_id, object_type, external_id, source, created_at, updated_at) "
@@ -78,21 +114,37 @@ def test_migration_preserves_rows_and_timestamps(db: Database) -> None:
             (str(target), kind, timestamp, timestamp),
         )
     migrate(db)
-    repo = MappingRepository(db)
-    assert repo.resolve_player("provider", "001") == PLAYER
-    assert repo.resolve_team("provider", "001") == TEAM
-    assert repo.resolve_event("provider", "001") == EVENT
+    # The current repository expects prefixed IDs. Inspect historical rows as SQL.
+    for kind, target in (
+        ("player", LEGACY_PLAYER),
+        ("team", LEGACY_TEAM),
+        ("event", LEGACY_EVENT),
+    ):
+        assert db.conn is not None
+        assert db.conn.execute(
+            sql.SQL("SELECT source, external_id, {} FROM {}").format(
+                sql.Identifier(f"{kind}_id"), sql.Identifier(f"{kind}_mappings")
+            )
+        ).fetchall() == [("provider", "001", target)]
     assert db.execute_query("SELECT created_at, updated_at FROM player_mappings") == [
         (timestamp, timestamp)
     ]
     assert db.execute_query("SELECT to_regclass('mappings')") == [(None,)]
 
 
-@pytest.mark.parametrize("problem", ["unknown_type", "missing_target", "duplicate"])
+@pytest.mark.parametrize(
+    ("problem", "error_type"),
+    [
+        ("unknown_type", psycopg.errors.RaiseException),
+        ("missing_target", psycopg.errors.ForeignKeyViolation),
+        ("duplicate", psycopg.errors.UniqueViolation),
+    ],
+)
 def test_invalid_legacy_data_rolls_back_entire_migration(
-    db: Database, problem: str
+    legacy_db: Database, problem: str, error_type: type[psycopg.Error]
 ) -> None:
-    target = Xid.new() if problem == "missing_target" else PLAYER
+    db = legacy_db
+    target = LEGACY_MISSING_PLAYER if problem == "missing_target" else LEGACY_PLAYER
     kind = "unsupported" if problem == "unknown_type" else "player"
     db.execute_command(
         "INSERT INTO mappings (object_id, object_type, external_id, source) "
@@ -103,9 +155,9 @@ def test_invalid_legacy_data_rolls_back_entire_migration(
         db.execute_command(
             "INSERT INTO mappings (object_id, object_type, external_id, source) "
             "VALUES (%s, 'player', '001', 'provider')",
-            (str(OTHER_PLAYER),),
+            (LEGACY_OTHER_PLAYER,),
         )
-    with pytest.raises(psycopg.Error):
+    with pytest.raises(error_type):
         migrate(db)
     assert db.execute_query("SELECT count(*) FROM mappings")[0][0] >= 1
     assert db.execute_query("SELECT to_regclass('player_mappings')") == [(None,)]
@@ -120,7 +172,6 @@ def test_invalid_legacy_data_rolls_back_entire_migration(
     ],
 )
 def test_mapping_round_trip_and_idempotence(db: Database, mapping: Mapping) -> None:
-    migrate(db)
     repo = MappingRepository(db)
     repo.create_mapping(mapping)
     repo.create_mapping(mapping)
@@ -139,7 +190,6 @@ def test_mapping_round_trip_and_idempotence(db: Database, mapping: Mapping) -> N
 
 
 def test_multiple_providers_aliases_and_conflicting_targets(db: Database) -> None:
-    migrate(db)
     repo = MappingRepository(db)
     for source, external_id in (("a", "001"), ("b", "001"), ("a", "alias")):
         repo.create_player_mapping(
@@ -156,7 +206,6 @@ def test_multiple_providers_aliases_and_conflicting_targets(db: Database) -> Non
 
 
 def test_foreign_keys_and_transaction_rollback(db: Database) -> None:
-    migrate(db)
     repo = MappingRepository(db)
     with pytest.raises(psycopg.errors.ForeignKeyViolation):
         repo.create_player_mapping(
