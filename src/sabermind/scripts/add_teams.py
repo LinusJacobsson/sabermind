@@ -5,7 +5,7 @@ from pathlib import Path
 from sabermind.database.database import Database
 from sabermind.database.teams import TeamRepository
 from sabermind.schemas.schemas import Sport, Team
-from sabermind.schemas.xid import TeamId, Xid
+from sabermind.schemas.xid import TeamId
 
 
 def main() -> None:
@@ -20,7 +20,7 @@ def main() -> None:
 
     teams = [
         Team(
-            team_id=TeamId(Xid.new()),
+            team_id=TeamId.new(),
             name=team["name"],
             league=team["league"],
             sport=Sport(team["sport"].lower()),

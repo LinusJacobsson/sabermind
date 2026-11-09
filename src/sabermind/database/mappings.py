@@ -81,21 +81,21 @@ class MappingRepository:
             "SELECT player_id FROM player_mappings WHERE source = %s AND external_id = %s",
             (source, external_id),
         )
-        return PlayerId(Xid.parse(rows[0][0])) if rows else None
+        return PlayerId.parse(rows[0][0]) if rows else None
 
     def resolve_team(self, source: str, external_id: str) -> TeamId | None:
         rows = self.db.execute_query(
             "SELECT team_id FROM team_mappings WHERE source = %s AND external_id = %s",
             (source, external_id),
         )
-        return TeamId(Xid.parse(rows[0][0])) if rows else None
+        return TeamId.parse(rows[0][0]) if rows else None
 
     def resolve_event(self, source: str, external_id: str) -> EventId | None:
         rows = self.db.execute_query(
             "SELECT event_id FROM event_mappings WHERE source = %s AND external_id = %s",
             (source, external_id),
         )
-        return EventId(Xid.parse(rows[0][0])) if rows else None
+        return EventId.parse(rows[0][0]) if rows else None
 
     def list_player_mappings(self, player_id: PlayerId) -> list[PlayerMapping]:
         rows = self.db.execute_query(

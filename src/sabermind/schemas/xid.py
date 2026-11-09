@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass
-from typing import NewType, Self
+from typing import ClassVar, Self
 
 from xid.xid import XID  # type: ignore[import-untyped]
 
@@ -10,14 +10,21 @@ _XID_PATTERN = re.compile(r"[0-9a-v]{19}[0g]")
 @dataclass(frozen=True, slots=True)
 class Xid:
     value: str
+    prefix: ClassVar[str] = ""
 
     def __post_init__(self) -> None:
-        if _XID_PATTERN.fullmatch(self.value) is None:
-            raise ValueError(f"Invalid XID: {self.value!r}")
+        prefix, separator, suffix = self.value.partition("_")
+        if (
+            not self.prefix
+            or separator != "_"
+            or prefix != self.prefix
+            or _XID_PATTERN.fullmatch(suffix) is None
+        ):
+            raise ValueError(f"Invalid {type(self).__name__}: {self.value!r}")
 
     @classmethod
     def new(cls) -> Self:
-        return cls(XID().string())
+        return cls(f"{cls.prefix}_{XID().string()}")
 
     @classmethod
     def parse(cls, value: str) -> Self:
@@ -27,10 +34,29 @@ class Xid:
         return self.value
 
 
-TeamId = NewType("TeamId", Xid)
-PlayerId = NewType("PlayerId", Xid)
-EventId = NewType("EventId", Xid)
-OddsId = NewType("OddsId", Xid)
-PredictionId = NewType("PredictionId", Xid)
+@dataclass(frozen=True, slots=True)
+class TeamId(Xid):
+    prefix: ClassVar[str] = "team"
 
-ObjectId = TeamId | PlayerId | EventId | OddsId | PredictionId
+
+@dataclass(frozen=True, slots=True)
+class PlayerId(Xid):
+    prefix: ClassVar[str] = "player"
+
+
+@dataclass(frozen=True, slots=True)
+class EventId(Xid):
+    prefix: ClassVar[str] = "event"
+
+
+@dataclass(frozen=True, slots=True)
+class OddsId(Xid):
+    prefix: ClassVar[str] = "odds"
+
+
+@dataclass(frozen=True, slots=True)
+class SimulationId(Xid):
+    prefix: ClassVar[str] = "sim"
+
+
+type ObjectId = TeamId | PlayerId | EventId | OddsId | SimulationId

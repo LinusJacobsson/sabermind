@@ -1,6 +1,6 @@
 from sabermind.database.database import Database
 from sabermind.schemas.schemas import Player
-from sabermind.schemas.xid import PlayerId, Xid
+from sabermind.schemas.xid import PlayerId
 
 
 class PlayerRepository:
@@ -27,7 +27,7 @@ class PlayerRepository:
         result = self.db.execute_query(query, params)
         if result:
             return Player(
-                player_id=PlayerId(Xid.parse(result[0][0])),
+                player_id=PlayerId.parse(result[0][0]),
                 name=result[0][1],
                 date_of_birth=result[0][2],
                 position=result[0][3],

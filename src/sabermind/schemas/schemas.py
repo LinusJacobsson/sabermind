@@ -3,7 +3,7 @@ from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
-from sabermind.schemas.xid import EventId, OddsId, PlayerId, PredictionId, TeamId
+from sabermind.schemas.xid import EventId, OddsId, PlayerId, SimulationId, TeamId
 
 
 # TODO: Add more sports as needed
@@ -73,7 +73,7 @@ class Odds(BaseModel):
 
 
 class ModelPrediction(BaseModel):
-    prediction_id: PredictionId = Field(
+    simulation_id: SimulationId = Field(
         ..., description="System generated unique identifier for the prediction."
     )
     event_id: EventId = Field(
