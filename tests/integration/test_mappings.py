@@ -17,10 +17,10 @@ from sabermind.schemas.xid import EventId, PlayerId, TeamId, Xid
 
 pytestmark = pytest.mark.integration
 MIGRATIONS = Path(__file__).resolve().parents[2] / "migrations"
-PLAYER = PlayerId(Xid.new())
-OTHER_PLAYER = PlayerId(Xid.new())
-TEAM = TeamId(Xid.new())
-EVENT = EventId(Xid.new())
+PLAYER = PlayerId.new()
+OTHER_PLAYER = PlayerId.new()
+TEAM = TeamId.new()
+EVENT = EventId.new()
 
 
 @pytest.fixture
@@ -160,7 +160,7 @@ def test_foreign_keys_and_transaction_rollback(db: Database) -> None:
     repo = MappingRepository(db)
     with pytest.raises(psycopg.errors.ForeignKeyViolation):
         repo.create_player_mapping(
-            PlayerMapping(player_id=PlayerId(Xid.new()), source="a", external_id="001")
+            PlayerMapping(player_id=PlayerId.new(), source="a", external_id="001")
         )
     with pytest.raises(RuntimeError), db.transaction():
         repo.create_player_mapping(

@@ -22,7 +22,7 @@ from sabermind.schemas.schemas import (
     Sport,
     Team,
 )
-from sabermind.schemas.xid import EventId, OddsId, PlayerId, PredictionId, TeamId, Xid
+from sabermind.schemas.xid import EventId, OddsId, PlayerId, SimulationId, TeamId
 
 pytestmark = pytest.mark.integration
 MIGRATIONS = Path(__file__).resolve().parents[2] / "migrations"
@@ -53,7 +53,7 @@ def db() -> Iterator[Database]:
 def test_team_create_update_delete(db: Database) -> None:
     repo = TeamRepository(db)
     team = Team(
-        team_id=TeamId(Xid.new()), name="Yankees", league="MLB", sport=Sport.BASEBALL
+        team_id=TeamId.new(), name="Yankees", league="MLB", sport=Sport.BASEBALL
     )
     assert repo.get_team(str(team.team_id)) is None
     repo.create_team(team)
@@ -68,7 +68,7 @@ def test_team_create_update_delete(db: Database) -> None:
 def test_player_create_update_delete(db: Database) -> None:
     repo = PlayerRepository(db)
     player = Player(
-        player_id=PlayerId(Xid.new()),
+        player_id=PlayerId.new(),
         name="Player",
         date_of_birth=date(1990, 1, 2),
         position="P",
@@ -89,7 +89,7 @@ def test_player_and_mapping_rollback_together(db: Database) -> None:
     players = PlayerRepository(db)
     mappings = MappingRepository(db)
     player = Player(
-        player_id=PlayerId(Xid.new()),
+        player_id=PlayerId.new(),
         name="Player",
         date_of_birth=date(1990, 1, 2),
         position="P",
@@ -109,7 +109,7 @@ def test_player_and_mapping_rollback_together(db: Database) -> None:
 
 @pytest.fixture
 def event_id(db: Database) -> EventId:
-    event_id = EventId(Xid.new())
+    event_id = EventId.new()
     db.execute_command(
         "INSERT INTO events (event_id, name, sport, start_time, location) "
         "VALUES (%s, 'Game', 'baseball', now(), 'Park')",
@@ -121,7 +121,7 @@ def event_id(db: Database) -> EventId:
 def test_odds_round_trip_and_event_cascade(db: Database, event_id: EventId) -> None:
     repo = OddsRepository(db)
     odds = Odds(
-        odds_id=OddsId(Xid.new()),
+        odds_id=OddsId.new(),
         event_id=event_id,
         bookmaker="Bookmaker",
         market="Moneyline",
@@ -140,24 +140,24 @@ def test_prediction_round_trip_and_event_cascade(
 ) -> None:
     repo = ModelPredictionRepository(db)
     prediction = ModelPrediction(
-        prediction_id=PredictionId(Xid.new()),
+        simulation_id=SimulationId.new(),
         event_id=event_id,
         model_name="Baseline",
         market="Moneyline",
         outcome="Home",
         predicted_probability=0.65,
     )
-    assert repo.get_model_prediction(str(prediction.prediction_id)) is None
+    assert repo.get_model_prediction(str(prediction.simulation_id)) is None
     repo.create_model_prediction(prediction)
-    assert repo.get_model_prediction(str(prediction.prediction_id)) == prediction
+    assert repo.get_model_prediction(str(prediction.simulation_id)) == prediction
     db.execute_command("DELETE FROM events WHERE event_id = %s", (str(event_id),))
-    assert repo.get_model_prediction(str(prediction.prediction_id)) is None
+    assert repo.get_model_prediction(str(prediction.simulation_id)) is None
 
 
 def test_missing_event_is_rejected(db: Database) -> None:
     prediction = ModelPrediction(
-        prediction_id=PredictionId(Xid.new()),
-        event_id=EventId(Xid.new()),
+        simulation_id=SimulationId.new(),
+        event_id=EventId.new(),
         model_name="Baseline",
         market="Moneyline",
         outcome="Home",
@@ -166,7 +166,7 @@ def test_missing_event_is_rejected(db: Database) -> None:
     with pytest.raises(psycopg.errors.ForeignKeyViolation):
         ModelPredictionRepository(db).create_model_prediction(prediction)
     odds = Odds(
-        odds_id=OddsId(Xid.new()),
+        odds_id=OddsId.new(),
         event_id=prediction.event_id,
         bookmaker="Bookmaker",
         market="Moneyline",
@@ -180,7 +180,7 @@ def test_missing_event_is_rejected(db: Database) -> None:
 def test_player_sport_migration_backfills_existing_rows(db: Database) -> None:
     # Recreate the pre-0008 shape and exercise the migration with an existing row.
     db.execute_command("ALTER TABLE players DROP COLUMN sport")
-    player_id = PlayerId(Xid.new())
+    player_id = PlayerId.new()
     db.execute_command(
         "INSERT INTO players (player_id, name, date_of_birth, position) "
         "VALUES (%s, 'Player', '1990-01-02', 'P')",
@@ -199,7 +199,7 @@ def test_prediction_probability_constraint(
     db: Database, event_id: EventId, probability: float
 ) -> None:
     prediction = ModelPrediction(
-        prediction_id=PredictionId(Xid.new()),
+        simulation_id=SimulationId.new(),
         event_id=event_id,
         model_name="Baseline",
         market="Moneyline",
@@ -210,7 +210,7 @@ def test_prediction_probability_constraint(
         ModelPredictionRepository(db).create_model_prediction(prediction)
     assert (
         ModelPredictionRepository(db).get_model_prediction(
-            str(prediction.prediction_id)
+            str(prediction.simulation_id)
         )
         is None
     )
