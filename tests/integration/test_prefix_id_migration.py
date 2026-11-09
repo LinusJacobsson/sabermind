@@ -28,7 +28,7 @@ def conn() -> Iterator[psycopg.Connection[tuple[object, ...]]]:
         try:
             with connection.transaction():
                 for path in sorted(MIGRATIONS.glob("000[1-8]_*.sql")):
-                    connection.execute(path.read_text())
+                    connection.execute(path.read_bytes())
             yield connection
         finally:
             connection.execute(
@@ -76,7 +76,7 @@ def test_prefix_migration_preserves_entities_and_relationships(
         )
     before = conn.execute("SELECT created_at, updated_at FROM teams").fetchone()
     with conn.transaction():
-        conn.execute((MIGRATIONS / "0009_prefix_entity_ids.sql").read_text())
+        conn.execute((MIGRATIONS / "0009_prefix_entity_ids.sql").read_bytes())
     for entity in ("team", "player", "event"):
         assert conn.execute(
             sql.SQL("SELECT source, external_id, {} FROM {}").format(
@@ -113,7 +113,7 @@ def test_prefix_migration_handles_empty_database(
     conn: psycopg.Connection[tuple[object, ...]],
 ) -> None:
     with conn.transaction():
-        conn.execute((MIGRATIONS / "0009_prefix_entity_ids.sql").read_text())
+        conn.execute((MIGRATIONS / "0009_prefix_entity_ids.sql").read_bytes())
     conn.execute(
         "INSERT INTO teams (team_id, name, league, sport) "
         "VALUES (%s, 'Team', 'MLB', 'baseball')",

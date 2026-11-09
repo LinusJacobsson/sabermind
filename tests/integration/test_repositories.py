@@ -42,7 +42,7 @@ def db() -> Iterator[Database]:
         try:
             with database.transaction():
                 for path in sorted(MIGRATIONS.glob("[0-9]*.sql")):
-                    conn.execute(path.read_text())
+                    conn.execute(path.read_bytes())
             yield database
         finally:
             conn.execute(
@@ -188,7 +188,7 @@ def test_player_sport_migration_backfills_existing_rows(db: Database) -> None:
     )
     assert db.conn is not None
     with db.transaction():
-        db.conn.execute((MIGRATIONS / "0008_add_player_sport.sql").read_text())
+        db.conn.execute((MIGRATIONS / "0008_add_player_sport.sql").read_bytes())
     player = PlayerRepository(db).get_player(str(player_id))
     assert player is not None
     assert player.sport == "baseball"
