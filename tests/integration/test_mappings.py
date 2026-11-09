@@ -75,7 +75,7 @@ def legacy_db(schema_db: Database) -> Database:
     assert schema_db.conn is not None
     with schema_db.transaction():
         for path in sorted(MIGRATIONS.glob("000[1-6]_*.sql")):
-            schema_db.conn.execute(path.read_text())
+            schema_db.conn.execute(path.read_bytes())
         seed_entities(
             schema_db, LEGACY_PLAYER, LEGACY_OTHER_PLAYER, LEGACY_TEAM, LEGACY_EVENT
         )
@@ -88,7 +88,7 @@ def db(schema_db: Database) -> Database:
     assert schema_db.conn is not None
     with schema_db.transaction():
         for path in sorted(MIGRATIONS.glob("[0-9]*.sql")):
-            schema_db.conn.execute(path.read_text())
+            schema_db.conn.execute(path.read_bytes())
         seed_entities(schema_db, str(PLAYER), str(OTHER_PLAYER), str(TEAM), str(EVENT))
     return schema_db
 
@@ -96,7 +96,7 @@ def db(schema_db: Database) -> Database:
 def migrate(db: Database) -> None:
     assert db.conn is not None
     with db.transaction():
-        db.conn.execute((MIGRATIONS / "0007_split_mappings.sql").read_text())
+        db.conn.execute((MIGRATIONS / "0007_split_mappings.sql").read_bytes())
 
 
 def test_migration_preserves_rows_and_timestamps(legacy_db: Database) -> None:
