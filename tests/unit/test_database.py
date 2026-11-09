@@ -35,5 +35,5 @@ def test_connection_failure_preserves_cause(monkeypatch: pytest.MonkeyPatch) -> 
 
 @pytest.mark.parametrize("value", ["", "not-an-xid", "z" * 20, "0" * 19 + "1"])
 def test_xid_rejects_invalid_identifiers(value: str) -> None:
-    with pytest.raises(ValueError, match="Invalid XID"):
+    with pytest.raises(ValueError, match="Invalid Xid"):
         Xid.parse(value)
