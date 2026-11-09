@@ -1,6 +1,6 @@
 from sabermind.database.database import Database
 from sabermind.schemas.schemas import ModelPrediction
-from sabermind.schemas.xid import EventId, PredictionId, Xid
+from sabermind.schemas.xid import EventId, SimulationId
 
 
 class ModelPredictionRepository:
@@ -13,7 +13,7 @@ class ModelPredictionRepository:
         VALUES (%s, %s, %s, %s, %s, %s)
         """
         params = (
-            str(model_prediction.prediction_id),
+            str(model_prediction.simulation_id),
             str(model_prediction.event_id),
             model_prediction.model_name,
             model_prediction.market,
@@ -28,8 +28,8 @@ class ModelPredictionRepository:
         result = self.db.execute_query(query, params)
         if result:
             return ModelPrediction(
-                prediction_id=PredictionId(Xid.parse(result[0][0])),
-                event_id=EventId(Xid.parse(result[0][1])),
+                simulation_id=SimulationId.parse(result[0][0]),
+                event_id=EventId.parse(result[0][1]),
                 model_name=result[0][2],
                 market=result[0][3],
                 outcome=result[0][4],

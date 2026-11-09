@@ -1,6 +1,6 @@
 from sabermind.database.database import Database
 from sabermind.schemas.schemas import Team
-from sabermind.schemas.xid import TeamId, Xid
+from sabermind.schemas.xid import TeamId
 
 
 class TeamRepository:
@@ -21,7 +21,7 @@ class TeamRepository:
         result = self.db.execute_query(query, params)
         if result:
             return Team(
-                team_id=TeamId(Xid.parse(result[0][0])),
+                team_id=TeamId.parse(result[0][0]),
                 name=result[0][1],
                 league=result[0][2],
                 sport=result[0][3],

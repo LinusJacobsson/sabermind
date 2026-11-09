@@ -1,6 +1,6 @@
 from sabermind.database.database import Database
 from sabermind.schemas.schemas import Odds
-from sabermind.schemas.xid import EventId, OddsId, Xid
+from sabermind.schemas.xid import EventId, OddsId
 
 
 class OddsRepository:
@@ -28,8 +28,8 @@ class OddsRepository:
         result = self.db.execute_query(query, params)
         if result:
             return Odds(
-                odds_id=OddsId(Xid.parse(result[0][0])),
-                event_id=EventId(Xid.parse(result[0][1])),
+                odds_id=OddsId.parse(result[0][0]),
+                event_id=EventId.parse(result[0][1]),
                 bookmaker=result[0][2],
                 market=result[0][3],
                 outcome=result[0][4],
