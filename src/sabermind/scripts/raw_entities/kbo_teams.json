@@ -1,0 +1,54 @@
+{
+  "teams": [
+    {
+      "name": "Lg Twins",
+      "league": "KBO",
+      "sport": "Baseball"
+    },
+    {
+      "name": "Doosan Bears",
+      "league": "KBO",
+      "sport": "Baseball"
+    },
+    {
+      "name": "Kiwoom Heroes",
+      "league": "KBO",
+      "sport": "Baseball"
+    },
+    {
+      "name": "Kia Tigers",
+      "league": "KBO",
+      "sport": "Baseball"
+    },
+    {
+      "name": "Hanwha Eagles",
+      "league": "KBO",
+      "sport": "Baseball"
+    },
+    {
+      "name": "Samsung Lions",
+      "league": "KBO",
+      "sport": "Baseball"
+    },
+    {
+      "name": "SSG Landers",
+      "league": "KBO",
+      "sport": "Baseball"
+    },
+    {
+      "name": "Lotte Giants",
+      "league": "KBO",
+      "sport": "Baseball"
+    },
+    {
+      "name": "NC Dinos",
+      "league": "KBO",
+      "sport": "Baseball"
+    },
+    {
+      "name": "KT Wiz",
+      "league": "KBO",
+      "sport": "Baseball"
+    }
+  ]
+}
