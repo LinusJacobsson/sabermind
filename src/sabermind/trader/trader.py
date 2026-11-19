@@ -7,6 +7,8 @@ from sabermind.database.model_predictions import ModelPredictionRepository
 from sabermind.database.odds import OddsRepository
 from sabermind.database.players import PlayerRepository
 from sabermind.database.teams import TeamRepository
+from sabermind.models.base import Model
+from sabermind.models.elo import EloModel
 from sabermind.providers.odds_api.api import OddsApiClient
 
 
@@ -19,6 +21,7 @@ class Trader:
         player_repository: PlayerRepository,
         team_repository: TeamRepository,
         odds_api_client: OddsApiClient,
+        model: Model,
     ) -> None:
         self.mapping_repository = mapping_repository
         self.model_prediction_repository = model_predictions_repository
@@ -26,7 +29,7 @@ class Trader:
         self.player_repository = player_repository
         self.team_repository = team_repository
         self.odds_api_client = odds_api_client
-
+        self.model = model
         self.sport = "baseball"
         self.league = "kbo-korean"
 
@@ -45,6 +48,7 @@ def main() -> None:
         player_repository=PlayerRepository(db=db),
         team_repository=TeamRepository(db=db),
         odds_api_client=OddsApiClient(ODDS_API_KEY),
+        model=EloModel(),
     )
     trader.fetch_events()
 

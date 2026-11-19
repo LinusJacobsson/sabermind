@@ -26,3 +26,15 @@ class EloModel:
         new_away_elo = away_elo + self.k_factor * (actual_away - expected_away)
 
         return new_home_elo, new_away_elo
+
+    def train(self, *args: object, **kwargs: object) -> None:
+        """Train method to be implemented by models."""
+        ...
+
+    def evaluate(self, *args: object, **kwargs: object) -> float:
+        """Evaluate method to be implemented by models."""
+        return 0.0
+
+    def save(self, *args: object, **kwargs: object) -> None:
+        """Save method to be implemented by models."""
+        ...
