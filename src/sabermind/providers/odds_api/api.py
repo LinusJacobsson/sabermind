@@ -99,7 +99,7 @@ class OddsApiClient:
         participant_id: int | None = None,
         status: str | None = None,
         bookmaker: str | None = None,
-    ) -> list[Event]:
+    ) -> Any:
         """
         Get events with optional filters.
 
@@ -131,8 +131,7 @@ class OddsApiClient:
         )
 
         response = self._get(Endpoints.GET_EVENTS, params)
-        print(f"Response: {response}")
-        return [Event.model_validate(data) for data in response]
+        return response
 
     def get_event_by_id(self, event_id: int) -> Any:
         """
@@ -166,7 +165,7 @@ class OddsApiClient:
         params = self._build_params(sport=sport)
         return self._get(Endpoints.GET_LIVE_EVENTS, params)
 
-    def get_event_odds(self, event_id: str, bookmakers: list[str]) -> EventOdds:
+    def get_event_odds(self, event_id: str, bookmakers: list[str]) -> Any:
         """
         Get odds for a specific event.
 
@@ -186,7 +185,7 @@ class OddsApiClient:
         params = self._build_params(eventId=event_id, bookmakers=bookmakers)
         response = self._get(Endpoints.GET_EVENT_ODDS, params)
         print(f"Raw Odds response: {response}")
-        return EventOdds.model_validate(response)
+        return response
 
     def get_odds_for_multiple_events(self, event_ids: str, bookmakers: str) -> Any:
         """
