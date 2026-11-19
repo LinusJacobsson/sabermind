@@ -7,12 +7,12 @@ from sabermind.database.model_predictions import ModelPredictionRepository
 from sabermind.database.odds import OddsRepository
 from sabermind.database.players import PlayerRepository
 from sabermind.database.teams import TeamRepository
-from sabermind.models.base import Model, ModelInputT
+from sabermind.models.base import Model
 from sabermind.models.elo import EloModel, ModelInput
 from sabermind.providers.odds_api.api import OddsApiClient
 
 
-class Trader:
+class Trader[InputT]:
     def __init__(
         self,
         mapping_repository: MappingRepository,
@@ -21,7 +21,7 @@ class Trader:
         player_repository: PlayerRepository,
         team_repository: TeamRepository,
         odds_api_client: OddsApiClient,
-        model: Model[ModelInputT],
+        model: Model[InputT],
     ) -> None:
         self.mapping_repository = mapping_repository
         self.model_prediction_repository = model_predictions_repository
